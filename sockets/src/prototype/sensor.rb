@@ -6,13 +6,26 @@ class Sensor
     def initialize(wired, positon)
         @wired = wired
         @positon = positon
-        @client = TCPSocket.new('localhost', 2000)    
+        @socket = TCPSocket.open('localhost', 2000)
+        connect
     end
 
     def connect
-        while line = @client.gets
-            puts line
-        end
+        while line = @socket.gets do
+            if "EOF" != line.chomp then
+                puts line
+            else
+                break
+            end
+        end  
+    end
+
+    def send(message)
+        @socket.send message+"\n", 0
+    end
+    
+    def close
+        @socket.send "Disconnect", 0
     end
 end
 

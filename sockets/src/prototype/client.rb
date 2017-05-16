@@ -1,4 +1,8 @@
 require_relative 'sensor'
 
-sen = Sensor.new('1', '2')
-sen.connect
+thermometer = Thermometer.new('1', '2')
+altimeter = Altimeter.new('1', '2')
+thermometer.send("Temperature: 35")
+altimeter.send("Height: 2000m")
+thermometer.close
+altimeter.send("Disconnect")

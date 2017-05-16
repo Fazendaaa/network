@@ -20,10 +20,9 @@ class Operator
     attr_reader :server
 
     def initialize(flight)
-        @server = TCPServer.new('localhost', 2000)
+        @server = TCPServer.open('localhost', 2000)
         @flight = flight
-        createVirtual()
-        connect()
+        connect
     end
 
     def createVirtual
@@ -32,9 +31,34 @@ class Operator
 
     def connect
         loop do
-            client = @server.accept
-            client.puts 'Hello!'
-            client.close
+            Thread.start(@server.accept) do |client|
+                puts "Accepting connection from: #{client.peeraddr[2]}"
+                client.puts "Hello!\nYou're now connected to the server - " + Time.now.ctime
+                client.puts "EOF"
+                
+                begin
+                    while client do
+                        incomingData = client.gets
+                        incomingData = incomingData.chomp if nil != incomingData
+                        
+                        puts "Incoming: #{incomingData}"
+
+                        if "Disconnect" == incomingData then
+                            puts "Recieved: Disconnect, closed connection"
+                            client.close
+                            break
+                        else
+                            client.puts "[SERVER] We recieved: #{incomingData}"
+                            client.flush 
+                        end
+                    end
+                rescue Exception => e
+                    puts "#{e}(#{e.class})"                    
+                ensure
+                    client.close
+                    puts "Ensure: closing"
+                end
+            end
         end
     end
 end
